@@ -186,7 +186,7 @@ class TestMakeTM(unittest.TestCase):
         self.assertEqual(tm.commit_veto, None)
 
 def fakeveto(environ, status, headers):
-    pass
+    """ """
 
 class DummyTransactionModule:
     begun = False
