@@ -91,6 +91,49 @@ Via Python:
   from repoze.tm import TM
   new_wsgiapp = TM(mywsgiapp)
 
+Using A Commit Veto
+-------------------
+
+If you'd like to veto commits based on the status code returned by the
+downstream application, use a commit veto callback.
+
+First, define the callback somewhere in your application:
+
+.. code-block:: python
+
+   def commit_veto(environ, status, headers):
+       for good in ('1', '2', '3'):
+          if not status.startswith(good):
+             return True
+       for header_name, header_value in headers:
+          if header_name.lower() == 'x-tm-abort':
+              return True
+
+Then configure it into your middleware.
+
+Via Python:
+
+.. code-block:: python
+
+  from otherplace import mywsgiapp
+  from my.package import commit_veto
+
+  from repoze.tm import TM
+  new_wsgiapp = TM(mywsgiapp, commit_veto=commit_veto)
+
+Via PasteDeploy:
+
+.. code-block:: ini
+
+   [filter:tm]
+   commit_veto = my.package:commit_veto
+
+In the PasteDeploy example, the path is a Python dotted name, where the dots
+separate module and package names, and the colon separates a module from its
+contents.  In the above example, the code would be implemented as a
+"commit_veto" function which lives in the "package" submodule of the "my"
+package.
+
 Mocking Up A Data Manager
 -------------------------
 
