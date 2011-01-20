@@ -1,5 +1,5 @@
-Next release
-============
+1.0b1 (2011-01-19)
+==================
 
 - Added ``repoze.tm.default_commit_veto`` commit veto hook.  This commit veto
   hook aborts for 4XX and 5XX response codes, or if there's a header named
