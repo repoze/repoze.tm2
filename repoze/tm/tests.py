@@ -185,6 +185,30 @@ class TestMakeTM(unittest.TestCase):
         tm = make_tm(DummyApplication(), {}, None)
         self.assertEqual(tm.commit_veto, None)
 
+class Test_default_commit_veto(unittest.TestCase):
+    def _callFUT(self, status, headers=()):
+        from repoze.tm import default_commit_veto
+        return default_commit_veto(None, status, headers)
+    
+    def test_it_true_5XX(self):
+        self.failUnless(self._callFUT('500 Server Error'))
+        self.failUnless(self._callFUT('503 Service Unavailable'))
+
+    def test_it_true_4XX(self):
+        self.failUnless(self._callFUT('400 Bad Request'))
+        self.failUnless(self._callFUT('411 Length Required'))
+
+    def test_it_false_2XX(self):
+        self.failIf(self._callFUT('200 OK'))
+        self.failIf(self._callFUT('201 Created'))
+
+    def test_it_false_3XX(self):
+        self.failIf(self._callFUT('301 Moved Permanently'))
+        self.failIf(self._callFUT('302 Found'))
+
+    def test_it_true_x_tm_abort(self):
+        self.failUnless(self._callFUT('200 OK', [('X-Tm-Abort', True)]))
+
 def fakeveto(environ, status, headers):
     """ """
 

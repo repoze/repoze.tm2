@@ -102,12 +102,13 @@ First, define the callback somewhere in your application:
 .. code-block:: python
 
    def commit_veto(environ, status, headers):
-       for good in ('1', '2', '3'):
-          if not status.startswith(good):
-             return True
        for header_name, header_value in headers:
-          if header_name.lower() == 'x-tm-abort':
-              return True
+           if header_name.lower() == 'x-tm-abort':
+               return True
+       for bad in ('4', '5'):
+           if status.startswith(bad):
+               return True
+       return False
 
 Then configure it into your middleware.
 
@@ -133,6 +134,28 @@ separate module and package names, and the colon separates a module from its
 contents.  In the above example, the code would be implemented as a
 "commit_veto" function which lives in the "package" submodule of the "my"
 package.
+
+The exact commit veto implementation shown above as an example is actually
+present in the ``repoze.tm2`` package as ``repoze.tm.default_commit_veto``.
+It's fairly general, so you needn't implement one yourself.  Instead just use
+it.
+
+Via Python:
+
+.. code-block:: python
+
+  from otherplace import mywsgiapp
+  from repoze.tm import default_commit_veto
+
+  from repoze.tm import TM
+  new_wsgiapp = TM(mywsgiapp, commit_veto=default_commit_veto)
+
+Via PasteDeploy:
+
+.. code-block:: ini
+
+   [filter:tm]
+   commit_veto = repoze.tm:default_commit_veto
 
 Mocking Up A Data Manager
 -------------------------

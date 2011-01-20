@@ -95,7 +95,16 @@ class AfterEnd:
 
 # singleton, importable by other modules
 after_end = AfterEnd()
-    
+
+def default_commit_veto(environ, status, headers):
+    for header_name, header_value in headers:
+        if header_name.lower() == 'x-tm-abort':
+            return True
+    for bad in ('4', '5'):
+        if status.startswith(bad):
+            return True
+    return False
+
 def make_tm(app, global_conf, commit_veto=None):
     from pkg_resources import EntryPoint
     if commit_veto is not None:
