@@ -20,10 +20,8 @@ class TM:
             return start_response(status, headers, exc_info)
 
         try:
-            print("1")
             for chunk in self.application(environ, save_status_and_headers):
                 yield chunk
-            print("2")
         except:
             self.abort()
             raise
