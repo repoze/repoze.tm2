@@ -206,8 +206,21 @@ class Test_default_commit_veto(unittest.TestCase):
         self.failIf(self._callFUT('301 Moved Permanently'))
         self.failIf(self._callFUT('302 Found'))
 
-    def test_it_true_x_tm_abort(self):
+    def test_it_true_x_tm_abort_specific(self):
         self.failUnless(self._callFUT('200 OK', [('X-Tm-Abort', True)]))
+
+    def test_it_false_x_tm_commit(self):
+        self.failIf(self._callFUT('200 OK', [('X-Tm', 'commit')]))
+
+    def test_it_true_x_tm_abort(self):
+        self.failUnless(self._callFUT('200 OK', [('X-Tm', 'abort')]))
+
+    def test_it_true_x_tm_anythingelse(self):
+        self.failUnless(self._callFUT('200 OK', [('X-Tm', '')]))
+
+    def test_x_tm_generic_precedes_x_tm_abort_specific(self):
+        self.failIf(self._callFUT('200 OK', [('X-Tm', 'commit'),
+                                             ('X-Tm-Abort', True)]))
 
 def fakeveto(environ, status, headers):
     """ """

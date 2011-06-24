@@ -103,7 +103,9 @@ First, define the callback somewhere in your application:
 
    def commit_veto(environ, status, headers):
        for header_name, header_value in headers:
-           if header_name.lower() == 'x-tm-abort':
+           if header_name.lower() == 'x-tm':
+               if header_value.lower() == 'commit':
+                   return False
                return True
        for bad in ('4', '5'):
            if status.startswith(bad):
@@ -135,10 +137,10 @@ contents.  In the above example, the code would be implemented as a
 "commit_veto" function which lives in the "package" submodule of the "my"
 package.
 
-The exact commit veto implementation shown above as an example is actually
-present in the ``repoze.tm2`` package as ``repoze.tm.default_commit_veto``.
-It's fairly general, so you needn't implement one yourself.  Instead just use
-it.
+A variant of the commit veto implementation shown above as an example is
+actually present in the ``repoze.tm2`` package as
+``repoze.tm.default_commit_veto``.  It's fairly general, so you needn't
+implement one yourself.  Instead just use it.
 
 Via Python:
 
@@ -156,6 +158,9 @@ Via PasteDeploy:
 
    [filter:tm]
    commit_veto = repoze.tm:default_commit_veto
+
+API documentation for ``default_commit_veto`` exists at
+:func:`pyramid.tm.default_commit_veto`.
 
 Mocking Up A Data Manager
 -------------------------
@@ -364,19 +369,20 @@ middleware raises an exception, the transaction is aborted.
 Cleanup
 -------
 
-When a :mod:`repoze.tm` is in the WSGI pipeline, a boolean key is
-present in the environment (``repoze.tm.active``).  A utility function
-named isActive can be imported from the :mod:`repoze.tm` package and
-passed the WSGI environment to check for activation:
+When a :mod:`repoze.tm` is in the WSGI pipeline, a boolean key is present in
+the environment (``repoze.tm.active``).  A utility function named
+:func:`pyramid.tm.isActive` can be imported and passed the WSGI environment
+to check for activation:
 
 .. code-block:: python
 
     from repoze.tm import isActive
     tm_active = isActive(wsgi_environment)
 
-If an application needs to perform an action after a transaction ends,
-the "after_end" registry may be used to register a callback.  The
-after_end.register function accepts a callback (accepting no
+If an application needs to perform an action after a transaction ends, the
+:attr:`pyramid.tm.after_end` registry may be used to register a callback.
+This object is an instance fo the :class:`pyramid.tm.AfterEnd` class.  The
+:meth:`pyramid.tm.AfterEnd.register` method accepts a callback (accepting no
 arguments) and a transaction instance:
 
 .. code-block:: python
@@ -415,15 +421,24 @@ Contacting
 
 The `repoze-dev maillist
 <http://lists.repoze.org/mailman/listinfo/repoze-dev>`_ should be used
-for communications about this software.  Put the overview of the
-purpose of the package here.
+for communications about this software.
 
+API Docs
+------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   api
+
+
+Change Logs
+-----------
 
 .. toctree::
    :maxdepth: 2
 
    changes
-
 
 Indices and tables
 ------------------
