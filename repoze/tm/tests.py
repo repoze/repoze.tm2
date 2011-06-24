@@ -17,7 +17,7 @@ class TestTM(unittest.TestCase):
         tm.transaction = DummyTransactionModule()
         from repoze.tm import ekey
         env = {}
-        tm(env, self._start_response)
+        [chunk for chunk in tm(env, self._start_response)]
         self.failUnless(ekey in env)
 
     def test_committed(self):
@@ -25,7 +25,7 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app)
         transaction = DummyTransactionModule()
         tm.transaction = transaction
-        result = tm({}, self._start_response)
+        result = [chunk for chunk in tm({}, self._start_response)]
         self.assertEqual(result, ['hello'])
         self.assertEqual(transaction.committed, True)
         self.assertEqual(transaction.aborted, False)
@@ -35,7 +35,7 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app)
         transaction = DummyTransactionModule(doom=True)
         tm.transaction = transaction
-        result = tm({}, self._start_response)
+        result = [chunk for chunk in tm({}, self._start_response)]
         self.assertEqual(result, ['hello'])
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
@@ -45,7 +45,10 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app)
         transaction = DummyTransactionModule()
         tm.transaction = transaction
-        self.assertRaises(ValueError, tm, {}, self._start_response)
+        def execute_request():
+            [chunk for chunk in tm({}, self._start_response)]
+
+        self.assertRaises(ValueError, execute_request)
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
         
@@ -54,7 +57,10 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app)
         transaction = DummyTransactionModule(doom=True)
         tm.transaction = transaction
-        self.assertRaises(ValueError, tm, {}, self._start_response)
+        def execute_request():
+            [chunk for chunk in tm({}, self._start_response)]
+
+        self.assertRaises(ValueError, execute_request)
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
 
@@ -71,9 +77,9 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app, commit_veto)
         transaction = DummyTransactionModule()
         tm.transaction = transaction
-        tm({}, self._start_response)
+        [chunk for chunk in tm({}, self._start_response)]
         self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
+        self.assertEqual(transaction.aborted, True) # ici
 
     def test_committed_via_commit_veto_exception(self):
         app = DummyApplication(status="403 Forbidden")
@@ -82,7 +88,7 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app, commit_veto)
         transaction = DummyTransactionModule()
         tm.transaction = transaction
-        tm({}, self._start_response)
+        [chunk for chunk in tm({}, self._start_response)]
         self.assertEqual(transaction.committed, True)
         self.assertEqual(transaction.aborted, False)
 
@@ -93,7 +99,10 @@ class TestTM(unittest.TestCase):
         tm = self._makeOne(app, commit_veto)
         transaction = DummyTransactionModule()
         tm.transaction = transaction
-        self.assertRaises(ValueError, tm, {}, self._start_response)
+        def execute_request():
+            [chunk for chunk in tm({}, self._start_response)]
+
+        self.assertRaises(ValueError, execute_request)
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
 
@@ -108,7 +117,7 @@ class TestTM(unittest.TestCase):
         transaction = DummyTransactionModule()
         setattr(transaction, after_end.key, [dummy])
         tm.transaction = transaction
-        tm(env, self._start_response)
+        [chunk for chunk in tm(env, self._start_response)]
         self.assertEqual(transaction.committed, True)
         self.assertEqual(transaction.aborted, False)
         self.assertEqual(dummycalled, [True])
@@ -124,7 +133,10 @@ class TestTM(unittest.TestCase):
         transaction = DummyTransactionModule()
         setattr(transaction, after_end.key, [dummy])
         tm.transaction = transaction
-        self.assertRaises(ValueError, tm, env, self._start_response)
+        def execute_request():
+            [chunk for chunk in tm(env, self._start_response)]
+
+        self.assertRaises(ValueError, execute_request)
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
         self.assertEqual(dummycalled, [True])
