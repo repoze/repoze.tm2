@@ -14,6 +14,8 @@ Next release
 
 - Add API docs section.
 
+- Convert use of deprecated failIf/failUnless to assertFalse/assertTrue.
+
 1.0b1 (2011-01-19)
 ==================
 
