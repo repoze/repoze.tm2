@@ -54,7 +54,7 @@ copyright = '2008-2011, Repoze Developers <repoze-dev@lists.repoze.org>'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '1.0b1'
+version = '1.0b2'
 # The full version, including alpha/beta/rc tags.
 release = version
 
