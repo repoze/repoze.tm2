@@ -4,6 +4,8 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Convert use of deprecated failIf/failUnless to assertFalse/assertTrue.
+
 - Added support for CI under supported Pythons using Tox.
 
 - Add explicit support for Python 3.2.
@@ -31,8 +33,6 @@ Changelog
   ``X-Tm`` header with a value of ``abort`` instead.
 
 - Add API docs section.
-
-- Convert use of deprecated failIf/failUnless to assertFalse/assertTrue.
 
 1.0b1 (2011-01-19)
 ------------------
