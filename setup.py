@@ -1,6 +1,14 @@
 
 import os
 from setuptools import setup, find_packages
+import sys
+
+if sys.version_info < (2, 5):
+    install_requires = ['transaction<1.2dev']
+else:
+    install_requires = ['transaction']
+
+testing_extras = install_requires + ['nose', 'coverage']
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
@@ -14,6 +22,7 @@ setup(name='repoze.tm2',
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2.4",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
@@ -32,12 +41,15 @@ setup(name='repoze.tm2',
       include_package_data=True,
       namespace_packages=['repoze'],
       zip_safe=False,
-      install_requires=['transaction'],
-      tests_require=['transaction'],
+      install_requires=install_requires,
+      tests_require=install_requires,
       test_suite = "repoze.tm.tests",
       entry_points="""
       [paste.filter_app_factory]
       tm = repoze.tm:make_tm
       """,
-      )
+      extras_require = {
+        'testing': testing_extras,
+      }
+)
 
