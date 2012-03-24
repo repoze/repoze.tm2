@@ -4,6 +4,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Middleware is now a generator, to deal appropriately with application
+  iterators which are themselves not lists.
+
 - Convert use of deprecated failIf/failUnless to assertFalse/assertTrue.
 
 - Added support for CI under supported Pythons using Tox.
