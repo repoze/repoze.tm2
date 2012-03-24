@@ -15,7 +15,7 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 setup(name='repoze.tm2',
-      version='1.0b2',
+      version='1.0',
       description='Zope-like transaction manager via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
