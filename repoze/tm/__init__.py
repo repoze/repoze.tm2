@@ -21,7 +21,8 @@ class TM:
             return start_response(status, headers, exc_info)
 
         try:
-            result = self.application(environ, save_status_and_headers)
+            for chunk in self.application(environ, save_status_and_headers):
+                yield chunk
         except:
             self.abort()
             raise
@@ -29,24 +30,22 @@ class TM:
         # ZODB 3.8 + has isDoomed
         if hasattr(transaction, 'isDoomed') and transaction.isDoomed():
             self.abort()
-            return result
+        else:
+            if self.commit_veto is not None:
+                try:
+                    status, headers = ctx['status'], ctx['headers']
+                    veto = self.commit_veto(environ, status, headers)
+                except:
+                    self.abort()
+                    raise
 
-        if self.commit_veto is not None:
-            try:
-                status, headers = ctx['status'], ctx['headers']
-                veto = self.commit_veto(environ, status, headers)
-            except:
-                self.abort()
-                raise
+                if veto:
+                    self.abort()
+                else:
+                    self.commit()
 
-            if veto:
-                self.abort()
             else:
                 self.commit()
-            return result
-            
-        self.commit()
-        return result
 
     def commit(self):
         t = self.transaction.get()
