@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 import sys
 
-if sys.version_info < (2, 5):
+if sys.version_info < (2, 6):
     install_requires = ['transaction<1.2dev']
 else:
     install_requires = ['transaction']

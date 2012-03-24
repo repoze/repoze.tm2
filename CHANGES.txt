@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0 (2012-03-24)
+----------------
+
+- Run OOTB under Python 2.4 / 2.5 (pin 'transaction' dependency to
+  a supported version when running under 2.4 / 2.5).
+
 1.0b2 (2011-07-18)
 ------------------
 
