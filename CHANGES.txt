@@ -4,6 +4,8 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Added support for CI under supported Pythons using Tox.
+
 - Add explicit support for Python 3.2.
 
 - Drop support for Python 2.4, 2.5.
