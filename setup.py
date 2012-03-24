@@ -1,12 +1,8 @@
 
 import os
 from setuptools import setup, find_packages
-import sys
 
-if sys.version_info < (2, 6):
-    install_requires = ['transaction<1.2dev']
-else:
-    install_requires = ['transaction']
+install_requires = ['transaction']
 
 testing_extras = install_requires + ['nose', 'coverage']
 
@@ -15,15 +11,13 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 setup(name='repoze.tm2',
-      version='1.0',
+      version='1.1dev',
       description='Zope-like transaction manager via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.4",
-        "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: Implementation :: CPython",
