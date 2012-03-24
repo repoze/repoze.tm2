@@ -18,7 +18,7 @@ class TestTM(unittest.TestCase):
         from repoze.tm import ekey
         env = {}
         tm(env, self._start_response)
-        self.failUnless(ekey in env)
+        self.assertTrue(ekey in env)
 
     def test_committed(self):
         app = DummyApplication()
@@ -61,11 +61,11 @@ class TestTM(unittest.TestCase):
     def test_aborted_via_commit_veto(self):
         app = DummyApplication(status="403 Forbidden")
         def commit_veto(environ, status, headers):
-            self.failUnless(isinstance(environ, dict),
+            self.assertTrue(isinstance(environ, dict),
                             "environ is not passed properly")
-            self.failUnless(isinstance(headers, list),
+            self.assertTrue(isinstance(headers, list),
                             "headers are not passed properly")
-            self.failUnless(isinstance(status, str),
+            self.assertTrue(isinstance(status, str),
                             "status is not passed properly")
             return not (200 <= int(status.split()[0]) < 400)
         tm = self._makeOne(app, commit_veto)
@@ -151,7 +151,7 @@ class TestAfterEnd(unittest.TestCase):
         registry.register(func, txn)
         self.assertEqual(getattr(txn, registry.key), [func])
         registry.unregister(func, txn)
-        self.failIf(hasattr(txn, registry.key))
+        self.assertFalse(hasattr(txn, registry.key))
         
     def test_unregister_notexists(self):
         registry = self._makeOne()
@@ -191,36 +191,36 @@ class Test_default_commit_veto(unittest.TestCase):
         return default_commit_veto(None, status, headers)
     
     def test_it_true_5XX(self):
-        self.failUnless(self._callFUT('500 Server Error'))
-        self.failUnless(self._callFUT('503 Service Unavailable'))
+        self.assertTrue(self._callFUT('500 Server Error'))
+        self.assertTrue(self._callFUT('503 Service Unavailable'))
 
     def test_it_true_4XX(self):
-        self.failUnless(self._callFUT('400 Bad Request'))
-        self.failUnless(self._callFUT('411 Length Required'))
+        self.assertTrue(self._callFUT('400 Bad Request'))
+        self.assertTrue(self._callFUT('411 Length Required'))
 
     def test_it_false_2XX(self):
-        self.failIf(self._callFUT('200 OK'))
-        self.failIf(self._callFUT('201 Created'))
+        self.assertFalse(self._callFUT('200 OK'))
+        self.assertFalse(self._callFUT('201 Created'))
 
     def test_it_false_3XX(self):
-        self.failIf(self._callFUT('301 Moved Permanently'))
-        self.failIf(self._callFUT('302 Found'))
+        self.assertFalse(self._callFUT('301 Moved Permanently'))
+        self.assertFalse(self._callFUT('302 Found'))
 
     def test_it_true_x_tm_abort_specific(self):
-        self.failUnless(self._callFUT('200 OK', [('X-Tm-Abort', True)]))
+        self.assertTrue(self._callFUT('200 OK', [('X-Tm-Abort', True)]))
 
     def test_it_false_x_tm_commit(self):
-        self.failIf(self._callFUT('200 OK', [('X-Tm', 'commit')]))
+        self.assertFalse(self._callFUT('200 OK', [('X-Tm', 'commit')]))
 
     def test_it_true_x_tm_abort(self):
-        self.failUnless(self._callFUT('200 OK', [('X-Tm', 'abort')]))
+        self.assertTrue(self._callFUT('200 OK', [('X-Tm', 'abort')]))
 
     def test_it_true_x_tm_anythingelse(self):
-        self.failUnless(self._callFUT('200 OK', [('X-Tm', '')]))
+        self.assertTrue(self._callFUT('200 OK', [('X-Tm', '')]))
 
     def test_x_tm_generic_precedes_x_tm_abort_specific(self):
-        self.failIf(self._callFUT('200 OK', [('X-Tm', 'commit'),
-                                             ('X-Tm-Abort', True)]))
+        self.assertFalse(self._callFUT('200 OK', [('X-Tm', 'commit'),
+                                                  ('X-Tm-Abort', True)]))
 
 def fakeveto(environ, status, headers):
     """ """
