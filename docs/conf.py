@@ -48,15 +48,15 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'repoze.tm2'
-copyright = '2008-2011, Repoze Developers <repoze-dev@lists.repoze.org>'
+copyright = '2008-2013, Repoze Developers <repoze-dev@lists.repoze.org>'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '1.0b2'
+version = '2.0'
 # The full version, including alpha/beta/rc tags.
-release = version
+release = '2.0b1'
 
 # There are two options for replacing |today|: either, you set today to
 # some non-false value, then it is used:
