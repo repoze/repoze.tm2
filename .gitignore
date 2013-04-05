@@ -7,3 +7,4 @@ docs/.build/
 .tox
 nosetests.xml
 coverage.xml
+docs/_build
