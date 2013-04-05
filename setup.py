@@ -12,7 +12,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 setup(name='repoze.tm2',
-      version='1.1dev',
+      version='2.0dev',
       description='Per-request transactions via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[

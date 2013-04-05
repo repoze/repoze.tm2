@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1 (unreleased)
+2.0 (unreleased)
 ----------------
 
 - Middleware is now a generator, to deal appropriately with application
