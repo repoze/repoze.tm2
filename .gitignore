@@ -4,3 +4,4 @@ dist/
 .coverage
 env26/
 docs/.build/
+.tox
