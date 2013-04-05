@@ -5,6 +5,7 @@ from setuptools import setup, find_packages
 install_requires = ['transaction']
 
 testing_extras = install_requires + ['nose', 'coverage']
+docs_extras = install_requires + ['Sphinx']
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
@@ -46,6 +47,7 @@ setup(name='repoze.tm2',
       """,
       extras_require = {
         'testing': testing_extras,
+        'docs': docs_extras,
       }
 )
 
