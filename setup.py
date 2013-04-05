@@ -7,12 +7,12 @@ install_requires = ['transaction']
 testing_extras = install_requires + ['nose', 'coverage']
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.txt')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
+README = open(os.path.join(here, 'README.rst')).read()
+CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 setup(name='repoze.tm2',
       version='1.1dev',
-      description='Zope-like transaction manager via WSGI middleware',
+      description='Per-request transactions via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
         "Development Status :: 3 - Alpha",
