@@ -9,9 +9,9 @@ Changelog
 
 - Convert use of deprecated failIf/failUnless to assertFalse/assertTrue.
 
-- Added support for CI under supported Pythons using Tox.
+- Add support for testing under supported Pythons using Tox.
 
-- Add explicit support for Python 3.2.
+- Add explicit support for Python 3.2 ad 3.3.
 
 - Drop support for Python 2.4, 2.5.
 
