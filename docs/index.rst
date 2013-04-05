@@ -21,7 +21,7 @@ Behavior
 
 When this middleware is present in the WSGI pipeline, a new
 transaction will be started once a WSGI request makes it to the
-:mod:`repoze.tm` middleware.  If any downstream application raises an
+middleware.  If any downstream application raises an
 exception, the transaction will be aborted, otherwise the transaction
 will be committed.  Any "data managers" participating in the
 transaction will be aborted or committed respectively.  A ZODB
@@ -72,8 +72,8 @@ so the damage is minimized.  In practice, this error almost never
 occurs unless the code that interfaces the database to the transaction
 manager has a bug.
 
-Adding :mod:`repoze.tm` To Your WSGI Pipeline
----------------------------------------------
+Adding :mod:`repoze.tm2` To Your WSGI Pipeline
+----------------------------------------------
 
 Via ``PasteDeploy`` .INI configuration::
 
@@ -160,7 +160,7 @@ Via PasteDeploy:
    commit_veto = repoze.tm:default_commit_veto
 
 API documentation for ``default_commit_veto`` exists at
-:func:`pyramid.tm.default_commit_veto`.
+:func:`repoze.tm.default_commit_veto`.
 
 Mocking Up A Data Manager
 -------------------------
@@ -351,17 +351,17 @@ data managers we've made within application code, if one has a problem
 during "tpc_vote", neither will actually write a file to the ultimate
 location, and thus your application consistency is maintained.
 
-Integrating Your Data Manager With :mod:`repoze.tm`
----------------------------------------------------
+Integrating Your Data Manager With :mod:`repoze.tm2`
+----------------------------------------------------
 
-The :mod:`repoze.tm` transaction management machinery has an implicit
+The :mod:`repoze.tm2` transaction management machinery has an implicit
 policy.  When it is in the WSGI pipeline, a transaction is started
 when the middleware is invoked.  Thus, in your application code,
 calling "import transaction; transaction.get()" will return the
-transaction object created by the :mod:`repoze.tm` middleware.  You
+transaction object created by the :mod:`repoze.tm2` middleware.  You
 needn't call t.commit() or t.abort() within your application code.
 You only need to call t.join, to register your data manager with the
-transaction.  :mod:`repoze.tm` will abort the transaction if an
+transaction.  :mod:`repoze.tm2` will abort the transaction if an
 exception is raised by your application code or lower middleware
 before it returns a WSGI response.  If your application or lower
 middleware raises an exception, the transaction is aborted.
@@ -369,10 +369,10 @@ middleware raises an exception, the transaction is aborted.
 Cleanup
 -------
 
-When a :mod:`repoze.tm` is in the WSGI pipeline, a boolean key is present in
-the environment (``repoze.tm.active``).  A utility function named
-:func:`pyramid.tm.isActive` can be imported and passed the WSGI environment
-to check for activation:
+When the :mod:`repoze.tm2` middleware is in the WSGI pipeline, a boolean
+key is present in the environment (``repoze.tm.active``).  A utility
+function named :func:`repoze.tm.isActive` can be imported and passed the
+WSGI environment to check for activation:
 
 .. code-block:: python
 
@@ -380,9 +380,9 @@ to check for activation:
     tm_active = isActive(wsgi_environment)
 
 If an application needs to perform an action after a transaction ends, the
-:attr:`pyramid.tm.after_end` registry may be used to register a callback.
-This object is an instance fo the :class:`pyramid.tm.AfterEnd` class.  The
-:meth:`pyramid.tm.AfterEnd.register` method accepts a callback (accepting no
+:attr:`repoze.tm.after_end` registry may be used to register a callback.
+This object is an instance fo the :class:`repoze.tm.AfterEnd` class.  The
+:meth:`repoze.tm.AfterEnd.register` method accepts a callback (accepting no
 arguments) and a transaction instance:
 
 .. code-block:: python
@@ -397,7 +397,7 @@ arguments) and a transaction instance:
 "after_end" callbacks should only be registered when the transaction
 manager is active, or a memory leak will result (registration cleanup
 happens only on transaction commit or abort, which is managed by
-:mod:`repoze.tm` while in the pipeline).
+:mod:`repoze.tm2` while in the pipeline).
 
 Further Documentation
 ---------------------
