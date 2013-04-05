@@ -1,8 +1,8 @@
 Changelog
 =========
 
-2.0 (unreleased)
-----------------
+2.0b1 (2013-04-05)
+------------------
 
 - Middleware is now a generator, to deal appropriately with application
   iterators which are themselves not lists.
