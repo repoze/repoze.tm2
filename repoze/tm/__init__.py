@@ -1,4 +1,5 @@
 # repoze TransactionManager WSGI middleware
+import sys
 import transaction
 
 ekey = 'repoze.tm.active'
@@ -23,9 +24,17 @@ class TM:
         try:
             for chunk in self.application(environ, save_status_and_headers):
                 yield chunk
-        except:
+        except Exception:
+            """Saving the exception"""
+            type_, value, tb = sys.exc_info()
             self.abort()
-            raise
+            raise type_, value, tb
+        #try:
+        #    for chunk in self.application(environ, save_status_and_headers):
+        #        yield chunk
+        #except Exception as e:
+        #    self.abort()
+        #    raise e
 
         # ZODB 3.8 + has isDoomed
         if hasattr(transaction, 'isDoomed') and transaction.isDoomed():
