@@ -26,15 +26,12 @@ class TM:
                 yield chunk
         except Exception:
             """Saving the exception"""
-            type_, value, tb = sys.exc_info()
-            self.abort()
-            raise type_, value, tb
-        #try:
-        #    for chunk in self.application(environ, save_status_and_headers):
-        #        yield chunk
-        #except Exception as e:
-        #    self.abort()
-        #    raise e
+            try:
+                type_, value, tb = sys.exc_info()
+                self.abort()
+                raise type_, value, tb
+            finally:
+                del type_, value, tb
 
         # ZODB 3.8 + has isDoomed
         if hasattr(transaction, 'isDoomed') and transaction.isDoomed():
