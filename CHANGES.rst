@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+2.0 (2013-06-26)
+----------------
 
 - Avoid swallowing the original exception while aborting the transaction
   in middleware.  See PR #3.
