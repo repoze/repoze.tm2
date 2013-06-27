@@ -142,6 +142,29 @@ class TestTM(unittest.TestCase):
         self.assertEqual(transaction.aborted, True)
         self.assertEqual(dummycalled, [True])
 
+    def test_exception_on_commit(self):
+        app = DummyApplication()
+        tm = self._makeOne(app)
+        transaction = DummyTransactionModule()
+        # raise exception on commit
+        class Bang(Exception):
+            pass
+        def commit():
+            raise Bang()
+        transaction.commit = commit
+        tm.transaction = transaction
+        call_log = []
+        def mock_start_response(*args, **kw):
+            call_log.append((args, kw))
+        result = []
+        def process():
+            for chunk in tm({}, mock_start_response):
+                result.append(chunk)
+        self.assertRaises(Bang, process)
+        self.assertEqual(call_log, [(('500 Internal Server Error', [], None), {})])
+        self.assertNotEqual(result, ['hello'])
+
+
 class TestAfterEnd(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.tm import AfterEnd
