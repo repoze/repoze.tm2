@@ -56,7 +56,7 @@ copyright = '2008-2013, Repoze Developers <repoze-dev@lists.repoze.org>'
 # The short X.Y version.
 version = '2.0'
 # The full version, including alpha/beta/rc tags.
-release = '2.0b1'
+release = '2.0'
 
 # There are two options for replacing |today|: either, you set today to
 # some non-false value, then it is used:
