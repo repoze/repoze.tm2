@@ -16,7 +16,7 @@ setup(name='repoze.tm2',
       description='Per-request transactions via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
