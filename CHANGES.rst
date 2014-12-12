@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+- Add support for Python 3.4 and PyPy3.
+
+- Add support for testing under Travis.
+
 2.0 (2013-06-26)
 ----------------
 
