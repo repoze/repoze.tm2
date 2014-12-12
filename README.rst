@@ -4,8 +4,8 @@ repoze.tm2 (Transaction Manager)
 .. image:: https://travis-ci.org/repoze/repoze.tm2.png?branch=master
         :target: https://travis-ci.org/repoze/repoze.tm2
 
-.. image:: https://readthedocs.org/projects/repozetm2/?badge=latest
-        :target:http://repozetm2.readthedocs.org/en/latest/ 
+.. image:: https://readthedocs.org/projects/repozetm2/badge/?version=latest
+        :target: http://repozetm2.readthedocs.org/en/latest/ 
         :alt: Documentation Status
 
 Middleware which uses the ZODB transaction manager to wrap a call to
