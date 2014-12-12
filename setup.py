@@ -8,8 +8,14 @@ testing_extras = install_requires + ['nose', 'coverage']
 docs_extras = install_requires + ['Sphinx']
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
+def _read_file(filename):
+    try:
+        with open(os.path.join(here, filename)) as f:
+            return f.read()
+    except IOError:  # Travis???
+        return ''
+README = _read_file('README.rst')
+CHANGES = _read_file('CHANGES.rst')
 
 setup(name='repoze.tm2',
       version='2.0',
