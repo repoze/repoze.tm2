@@ -408,9 +408,7 @@ look in these places to see how to implement a more real-world
 transaction-aware database connector that uses this module in non-Zope
 applications:
 
-- http://svn.zope.org/ZODB/branches/3.7/src/transaction/
-
-- http://svn.zope.org/ZODB/branches/3.8/src/transaction/
+- http://www.zodb.org/en/latest/documentation/guide/transactions.html
 
 - http://mysql-python.sourceforge.net/ (ZMySQLDA)
 
