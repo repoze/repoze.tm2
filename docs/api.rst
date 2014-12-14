@@ -1,5 +1,5 @@
-:mod:`repoze.tm`
-----------------
+:mod:`repoze.tm2` API
+---------------------
 
 .. automodule:: repoze.tm
 

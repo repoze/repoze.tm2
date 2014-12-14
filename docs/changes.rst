@@ -1,4 +1,4 @@
-:mod:`repoze.tm` Change History
-===============================
+:mod:`repoze.tm2` Change History
+================================
 
 .. include:: ../CHANGES.rst
