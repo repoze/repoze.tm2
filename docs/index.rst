@@ -421,6 +421,10 @@ The `repoze-dev maillist
 <http://lists.repoze.org/mailman/listinfo/repoze-dev>`_ should be used
 for communications about this software.
 
+Report bugs on Github:  https://github.com/repoze/repoze.tm2/issues
+
+Fork it on Github:  https://github.com/repoze/repoze.tm2/
+
 API Docs
 ------------------------
 
