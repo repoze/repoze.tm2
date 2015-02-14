@@ -1,6 +1,10 @@
 repoze.tm2 (Transaction Manager)
 ================================
 
+.. image:: https://pypip.in/version/repoze.tm2/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/repoze.tm2/
+    :alt: Latest Version
+
 .. image:: https://travis-ci.org/repoze/repoze.tm2.png?branch=master
         :target: https://travis-ci.org/repoze/repoze.tm2
 
