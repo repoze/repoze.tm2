@@ -18,7 +18,7 @@ README = _read_file('README.rst')
 CHANGES = _read_file('CHANGES.rst')
 
 setup(name='repoze.tm2',
-      version='2.0',
+      version='2.1.dev0',
       description='Per-request transactions via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
@@ -30,6 +30,7 @@ setup(name='repoze.tm2',
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Internet :: WWW/HTTP",
