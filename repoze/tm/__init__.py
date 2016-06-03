@@ -174,6 +174,6 @@ def make_tm(app, global_conf, commit_veto=None):
     """ Paste filter_app_factory entry point for creation of a TM middleware."""
     from pkg_resources import EntryPoint
     if commit_veto is not None:
-        commit_veto = EntryPoint.parse('x=%s' % commit_veto).load(False)
+        commit_veto = EntryPoint.parse('x=%s' % commit_veto).resolve()
     return TM(app, commit_veto)
 
