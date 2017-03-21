@@ -36,7 +36,7 @@ class TM:
         self.application = application
         self.commit_veto = commit_veto
         self.transaction = transaction # for testing
-        
+
     def __call__(self, environ, start_response):
         transaction = self.transaction
         environ[ekey] = True
@@ -48,8 +48,16 @@ class TM:
             return start_response(status, headers, exc_info)
 
         try:
-            for chunk in self.application(environ, save_status_and_headers):
-                yield chunk
+            response = self.application(environ, save_status_and_headers)
+            # Ensure that the `.close()` method is always called (if present)
+            # after iteration. Required by WSGI specification.
+            # https://www.python.org/dev/peps/pep-0333/#specification-details
+            try:
+                for chunk in response:
+                    yield chunk
+            finally:
+                if hasattr(response, "close"):
+                    response.close()
         except Exception:
             """Saving the exception"""
             try:

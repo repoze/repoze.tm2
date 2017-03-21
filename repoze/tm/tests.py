@@ -52,7 +52,7 @@ class TestTM(unittest.TestCase):
         self.assertRaises(ValueError, execute_request)
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
-        
+
     def test_aborted_via_exception_and_doom(self):
         app = DummyApplication(exception=True)
         tm = self._makeOne(app)
@@ -122,7 +122,7 @@ class TestTM(unittest.TestCase):
         self.assertEqual(transaction.committed, True)
         self.assertEqual(transaction.aborted, False)
         self.assertEqual(dummycalled, [True])
-        
+
     def test_cleanup_on_abort(self):
         from repoze.tm import after_end
         dummycalled = []
@@ -141,6 +141,56 @@ class TestTM(unittest.TestCase):
         self.assertEqual(transaction.committed, False)
         self.assertEqual(transaction.aborted, True)
         self.assertEqual(dummycalled, [True])
+
+    def test_response_iter_closed(self):
+        """
+        If the app returns an iterator with a `.close()` method, it is
+        called after consuming the iterator.
+        """
+        class DummyResponse(object):
+            def __init__(self):
+                self.closed = False
+
+            def __iter__(self):
+                yield "hello"
+                yield "iter"
+
+            def close(self):
+                self.closed = True
+
+        env = {}
+        response = DummyResponse()
+        app = DummyApplication(response=response)
+        tm = self._makeOne(app)
+        result = [chunk for chunk in tm({}, self._start_response)]
+        self.assertEqual(result, ["hello", "iter"])
+        self.assertTrue(response.closed)
+
+    def test_response_iter_closed_on_error(self):
+        """
+        If the app returns an iterator with a `.close()` method, it is
+        called even if the iteration raises an error.
+        """
+        class DummyResponse(object):
+            def __init__(self):
+                self.closed = False
+
+            def __iter__(self):
+                yield "hello"
+                raise Exception("BOOM!")
+
+            def close(self):
+                self.closed = True
+
+        env = {}
+        response = DummyResponse()
+        app = DummyApplication(response=response)
+        tm = self._makeOne(app)
+        def execute_request():
+            [chunk for chunk in tm({}, self._start_response)]
+        self.assertRaises(Exception, execute_request)
+        self.assertTrue(response.closed)
+
 
 class TestAfterEnd(unittest.TestCase):
     def _getTargetClass(self):
@@ -165,7 +215,7 @@ class TestAfterEnd(unittest.TestCase):
         self.assertEqual(getattr(txn, registry.key), [func])
         registry.unregister(func, txn)
         self.assertFalse(hasattr(txn, registry.key))
-        
+
     def test_unregister_notexists(self):
         registry = self._makeOne()
         func = lambda *x: None
@@ -202,7 +252,7 @@ class Test_default_commit_veto(unittest.TestCase):
     def _callFUT(self, status, headers=()):
         from repoze.tm import default_commit_veto
         return default_commit_veto(None, status, headers)
-    
+
     def test_it_true_5XX(self):
         self.assertTrue(self._callFUT('500 Server Error'))
         self.assertTrue(self._callFUT('503 Service Unavailable'))
@@ -264,13 +314,16 @@ class Dummy:
     pass
 
 class DummyApplication:
-    def __init__(self, exception=False, status="200 OK"):
+    def __init__(self, exception=False, status="200 OK", response=None):
         self.exception = exception
         self.status = status
-        
+        self.response = response
+
     def __call__(self, environ, start_response):
         start_response(self.status, [], None)
         if self.exception:
             raise ValueError('raising')
-        return ['hello']
-
+        if self.response is None:
+            return ['hello']
+        else:
+            return self.response
