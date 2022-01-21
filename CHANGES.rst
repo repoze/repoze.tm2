@@ -1,10 +1,12 @@
 Changelog
 =========
 
-2.1.1 (unreleased)
+2.2.0 (unreleased)
 ------------------
 
-- TBD
+- Add support for Python 3.7, 3.8, 3.9, and 3.10.
+
+- Drop suppport for Python 2.7, 3.4 and 3.5.
 
 2.1 (2016-06-03)
 ----------------
