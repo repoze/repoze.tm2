@@ -8,6 +8,8 @@ Changelog
 
 - Drop suppport for Python 2.7, 3.4 and 3.5.
 
+- Add Github Actions workflow running unit tests / coverage for PRs.
+
 2.1 (2016-06-03)
 ----------------
 
