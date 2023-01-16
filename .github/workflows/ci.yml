@@ -34,8 +34,6 @@ jobs:
         python -m pip install tox
 
     - name: Run unit tests
-      env:
-        COVERAGE_FILE: .coverage-${{ matrix.python }}
       run: |
         tox -e py${{ matrix.python }}
 
@@ -43,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: coverage-artifacts
-        path: .coverage-py${{ matrix.python }}
+        path: .coverage.py${{ matrix.python }}
 
   report-coverage:
     name: cover
