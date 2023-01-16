@@ -4,9 +4,9 @@ Changelog
 2.2.0 (unreleased)
 ------------------
 
-- Add support for Python 3.7, 3.8, 3.9, and 3.10.
+- Add support for Python 3.7, 3.8, 3.9, 3.10, and 3.11.
 
-- Drop suppport for Python 2.7, 3.4 and 3.5.
+- Drop suppport for Python 2.7, 3.4, 3.5 and 3.6.
 
 - Add Github Actions workflow running unit tests / coverage for PRs.
 

@@ -1,10 +1,10 @@
-
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages
+from setuptools import setup
 
 install_requires = ['transaction']
 
-testing_extras = install_requires + ['nose', 'coverage']
 docs_extras = install_requires + ['Sphinx']
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -30,6 +30,7 @@ setup(name='repoze.tm2',
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Internet :: WWW/HTTP",
@@ -53,7 +54,6 @@ setup(name='repoze.tm2',
       tm = repoze.tm:make_tm
       """,
       extras_require = {
-        'testing': testing_extras,
         'docs': docs_extras,
       }
 )
