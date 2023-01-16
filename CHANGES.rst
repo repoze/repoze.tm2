@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.2.0 (unreleased)
+2.2.0 (2023-01-16)
 ------------------
 
 - Add support for Python 3.7, 3.8, 3.9, 3.10, and 3.11.

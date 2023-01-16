@@ -18,7 +18,7 @@ README = _read_file('README.rst')
 CHANGES = _read_file('CHANGES.rst')
 
 setup(name='repoze.tm2',
-      version='2.1.1.dev0',
+      version='2.2.0',
       description='Per-request transactions via WSGI middleware',
       long_description=README + "\n\n" + CHANGES,
       classifiers=[
