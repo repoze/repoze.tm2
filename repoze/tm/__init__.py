@@ -18,7 +18,7 @@ class TM:
         self.application = application
         self.commit_veto = commit_veto
         self.transaction = transaction # for testing
-        
+
     def __call__(self, environ, start_response):
         transaction = self.transaction
         environ[ekey] = True
@@ -29,8 +29,10 @@ class TM:
             ctx.update(status=status, headers=headers)
             return start_response(status, headers, exc_info)
 
+        iterable = None
         try:
-            for chunk in self.application(environ, save_status_and_headers):
+            iterable = self.application(environ, save_status_and_headers)
+            for chunk in iterable:
                 yield chunk
         except Exception:
             """Saving the exception"""
@@ -40,6 +42,18 @@ class TM:
                 reraise(type_, value, tb)
             finally:
                 del type_, value, tb
+        finally:
+            if hasattr(iterable, 'close'):
+                try:
+                    iterable.close()
+                except Exception:
+                    """Saving the exception"""
+                    try:
+                        type_, value, tb = sys.exc_info()
+                        self.abort()
+                        reraise(type_, value, tb)
+                    finally:
+                        del type_, value, tb
 
         # ZODB 3.8 + has isDoomed
         if hasattr(transaction, 'isDoomed') and transaction.isDoomed():
