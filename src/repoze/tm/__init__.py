@@ -1,4 +1,5 @@
 # repoze TransactionManager WSGI middleware
+import importlib
 import sys
 
 import transaction
@@ -152,10 +153,16 @@ def default_commit_veto(environ, status, headers):
             return True
     return False
 
+
+def _quasi_entrypoint(dotted_with_colon):
+    dotted, name = dotted_with_colon.rsplit(":", 1)
+    module = importlib.import_module(dotted)
+    return getattr(module, name)
+
+
 def make_tm(app, global_conf, commit_veto=None):
     """ Paste filter_app_factory entry point for creation of a TM middleware."""
-    from pkg_resources import EntryPoint
     if commit_veto is not None:
-        commit_veto = EntryPoint.parse('x=%s' % commit_veto).resolve()
+        commit_veto = _quasi_entrypoint(commit_veto)
     return TM(app, commit_veto)
 

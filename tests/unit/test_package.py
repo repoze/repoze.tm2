@@ -190,7 +190,8 @@ class UtilityFunctionTests(unittest.TestCase):
 class TestMakeTM(unittest.TestCase):
     def test_make_tm_withveto(self):
         from repoze.tm import make_tm
-        tm = make_tm(DummyApplication(), {}, 'repoze.tm.tests:fakeveto')
+        from tests.unit.util import fakeveto
+        tm = make_tm(DummyApplication(), {}, 'tests.unit.util:fakeveto')
         self.assertEqual(tm.commit_veto, fakeveto)
 
     def test_make_tm_noveto(self):
@@ -234,9 +235,6 @@ class Test_default_commit_veto(unittest.TestCase):
     def test_x_tm_generic_precedes_x_tm_abort_specific(self):
         self.assertFalse(self._callFUT('200 OK', [('X-Tm', 'commit'),
                                                   ('X-Tm-Abort', True)]))
-
-def fakeveto(environ, status, headers):
-    """ """
 
 class DummyTransactionModule:
     begun = False
