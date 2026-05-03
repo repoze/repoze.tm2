@@ -82,4 +82,4 @@ jobs:
 
     - name: Run unit tests and coverage
       run: |
-        tox -e py3.14,coverage
+        tox -e py3.14,cover
