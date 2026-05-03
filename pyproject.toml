@@ -1,0 +1,124 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "repoze-tm2"
+version = "2.3dev0"
+description = "Per-request transactions via WSGI middleware"
+readme = {file = "README.rst", content-type = "text/x-rst"}
+requires-python = ">=3.10"
+dependencies = []
+
+authors = [
+  {name = "Tres Seaver, Agendaless Consulting", email = "tseaver@agendaless.com"},
+]
+license = "LicenseRef-Repoze-BSD-derived"
+license-files = ["LICENSE.txt"]
+
+keywords = ["web", "wsgi", "middleware", "transaction"]
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+]
+# Not supported by 'setuptools':
+# import-namespaces = ["repoze"]
+# import-names = ["repoze.tm2"]
+
+[project.urls]
+Repository = "https://github.com/repoze/repoze.tm2"
+Issues = "https://github.com/repoze/repoze.tm2/issues"
+Documentation = "https://repozetm2.readthedocs.io/en/stable/index.html"
+Changelog = "https://github.com/repoze/repoze.tm2/blob/master/CHANGES.rst"
+
+[project.entry-points."paste.filter_app_factory"]
+tm = "repoze.tm:make_tm"
+
+[dependency-groups]
+dev = [
+    "tox",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "check-manifest",
+    "build",
+    "twine",
+]
+docs = [
+    "sphinx",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+python_files = "test_*.py"
+testpaths = [ "tests" ]
+
+[tool.coverage.run]
+omit = []
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.ruff]
+line-length = 79
+exclude = [
+]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    # flake8
+    "F",
+    # pycodestyle
+    "E",
+    # flake8-bugbear
+    "B",
+    # pyupgrade
+    "U",
+    # isort
+    "I",
+    # pandas vet
+    "PD",
+    # tryceratops
+    "TRY",
+    # flake8-pytest-style
+    "PT",
+]
+ignore = [
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "csv"
+
+[tool.check-manifest]
+ignore = [
+    ".gitignore",
+    ".gitattributes",
+    "PKG-INFO",
+    "*.egg-info",
+    "*.egg-info/*",
+    "setup.cfg",
+]
+ignore-default-rules = true

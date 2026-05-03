@@ -8,13 +8,13 @@ Overview
 transaction manager to wrap a call to its pipeline children inside a
 transaction.
 
-.. note:: :mod:`repoze.tm2` is equivalent to the :mod:`repoze.tm`
-   package (it was forked from :mod:`repoze.tm`), except it has a
+.. note:: :mod:`repoze.tm2` is equivalent to the ``repoze.tm``
+   package (it was forked from ``repoze.tm``), except it has a
    dependency only on the ``transaction`` package rather than a
    dependency on the entire ``ZODB3`` package (``ZODB3`` 3.8 ships
    with the ``transaction`` package right now).  It is an error to
-   install both repoze.tm and repoze.tm2 into the same environment, as
-   they provide the same entry points and import points.
+   install both ``repoze.tm`` and ``repoze.tm2`` into the same environment,
+   as they provide the same entry points and import points.
 
 Behavior
 --------
