@@ -1,7 +1,7 @@
 *.pyc
 dist/
 *.egg-info
-.coverage
+.coverage*
 env26/
 docs/.build/
 .tox
