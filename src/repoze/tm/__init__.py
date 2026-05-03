@@ -18,10 +18,8 @@ class TM:
     def __init__(self, application, commit_veto=None):
         self.application = application
         self.commit_veto = commit_veto
-        self.transaction = transaction # for testing
         
     def __call__(self, environ, start_response):
-        transaction = self.transaction
         environ[ekey] = True
         transaction.begin()
         ctx = {}
@@ -63,12 +61,12 @@ class TM:
                 self.commit()
 
     def commit(self):
-        t = self.transaction.get()
+        t = transaction.get()
         t.commit()
         after_end.cleanup(t)
 
     def abort(self):
-        t = self.transaction.get()
+        t = transaction.get()
         t.abort()
         after_end.cleanup(t)
 

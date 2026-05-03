@@ -1,247 +1,289 @@
 import unittest
+from unittest import mock
 
-class TestTM(unittest.TestCase):
-    def _getTargetClass(self):
-        from repoze.tm import TM
-        return TM
+import pytest
 
-    def _start_response(self, status, headers, exc_info=None):
-        pass
+from repoze import tm as repoze_tm
 
-    def _makeOne(self, app, commit_veto=None):
-        return self._getTargetClass()(app, commit_veto)
 
-    def test_ekey_inserted(self):
-        app = DummyApplication()
-        tm = self._makeOne(app)
-        tm.transaction = DummyTransactionModule()
-        from repoze.tm import ekey
-        env = {}
-        result = [chunk for chunk in tm(env, self._start_response)]
-        self.assertEqual(result, ['hello'])
-        self.assertTrue(ekey in env)
+def start_response(status, headers, exc_info=None):
+    pass
 
-    def test_committed(self):
-        app = DummyApplication()
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule()
-        tm.transaction = transaction
-        result = [chunk for chunk in tm({}, self._start_response)]
-        self.assertEqual(result, ['hello'])
-        self.assertEqual(transaction.committed, True)
-        self.assertEqual(transaction.aborted, False)
 
-    def test_aborted_via_doom(self):
-        app = DummyApplication()
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule(doom=True)
-        tm.transaction = transaction
-        result = [chunk for chunk in tm({}, self._start_response)]
-        self.assertEqual(result, ['hello'])
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
+@pytest.fixture
+def transaction_module():
+    with mock.patch("repoze.tm.transaction", DummyTransactionModule()) as txn:
+        yield txn
 
-    def test_aborted_via_exception(self):
-        app = DummyApplication(exception=True)
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule()
-        tm.transaction = transaction
-        def execute_request():
-            [chunk for chunk in tm({}, self._start_response)]
 
-        self.assertRaises(ValueError, execute_request)
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
-        
-    def test_aborted_via_exception_and_doom(self):
-        app = DummyApplication(exception=True)
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule(doom=True)
-        tm.transaction = transaction
-        def execute_request():
-            [chunk for chunk in tm({}, self._start_response)]
+@pytest.fixture
+def app():
+    return DummyApplication()
 
-        self.assertRaises(ValueError, execute_request)
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
 
-    def test_aborted_via_commit_veto(self):
-        app = DummyApplication(status="403 Forbidden")
-        def commit_veto(environ, status, headers):
-            self.assertTrue(isinstance(environ, dict),
-                            "environ is not passed properly")
-            self.assertTrue(isinstance(headers, list),
-                            "headers are not passed properly")
-            self.assertTrue(isinstance(status, str),
-                            "status is not passed properly")
-            return not (200 <= int(status.split()[0]) < 400)
-        tm = self._makeOne(app, commit_veto)
-        transaction = DummyTransactionModule()
-        tm.transaction = transaction
-        [chunk for chunk in tm({}, self._start_response)]
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True) # ici
+def test_tm_ekey_inserted(transaction_module, app):
+    tm = repoze_tm.TM(app)
+    env = {}
 
-    def test_committed_via_commit_veto_exception(self):
-        app = DummyApplication(status="403 Forbidden")
-        def commit_veto(environ, status, headers):
-            return None
-        tm = self._makeOne(app, commit_veto)
-        transaction = DummyTransactionModule()
-        tm.transaction = transaction
-        [chunk for chunk in tm({}, self._start_response)]
-        self.assertEqual(transaction.committed, True)
-        self.assertEqual(transaction.aborted, False)
+    result = [chunk for chunk in tm(env, start_response)]
 
-    def test_aborted_via_commit_veto_exception(self):
-        app = DummyApplication(status="403 Forbidden")
-        def commit_veto(environ, status, headers):
-            raise ValueError('foo')
-        tm = self._makeOne(app, commit_veto)
-        transaction = DummyTransactionModule()
-        tm.transaction = transaction
-        def execute_request():
-            [chunk for chunk in tm({}, self._start_response)]
+    assert result == ['hello']
+    assert repoze_tm.ekey in env
 
-        self.assertRaises(ValueError, execute_request)
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
 
-    def test_cleanup_on_commit(self):
-        from repoze.tm import after_end
-        dummycalled = []
-        def dummy():
-            dummycalled.append(True)
-        env = {}
-        app = DummyApplication()
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule()
-        setattr(transaction, after_end.key, [dummy])
-        tm.transaction = transaction
-        [chunk for chunk in tm(env, self._start_response)]
-        self.assertEqual(transaction.committed, True)
-        self.assertEqual(transaction.aborted, False)
-        self.assertEqual(dummycalled, [True])
-        
-    def test_cleanup_on_abort(self):
-        from repoze.tm import after_end
-        dummycalled = []
-        def dummy():
-            dummycalled.append(True)
-        env = {}
-        app = DummyApplication(exception=True)
-        tm = self._makeOne(app)
-        transaction = DummyTransactionModule()
-        setattr(transaction, after_end.key, [dummy])
-        tm.transaction = transaction
-        def execute_request():
-            [chunk for chunk in tm(env, self._start_response)]
+def test_tm_committed(transaction_module, app):
+    tm = repoze_tm.TM(app)
 
-        self.assertRaises(ValueError, execute_request)
-        self.assertEqual(transaction.committed, False)
-        self.assertEqual(transaction.aborted, True)
-        self.assertEqual(dummycalled, [True])
+    result = [chunk for chunk in tm({}, start_response)]
 
-class TestAfterEnd(unittest.TestCase):
-    def _getTargetClass(self):
-        from repoze.tm import AfterEnd
-        return AfterEnd
+    assert result == ['hello']
+    assert transaction_module.committed
+    assert not transaction_module.aborted
 
-    def _makeOne(self):
-        return self._getTargetClass()()
 
-    def test_register(self):
-        registry = self._makeOne()
-        func = lambda *x: None
-        txn = Dummy()
-        registry.register(func, txn)
-        self.assertEqual(getattr(txn, registry.key), [func])
+def test_tm_aborted_via_doom(transaction_module, app):
+    transaction_module.doom = True
 
-    def test_unregister_exists(self):
-        registry = self._makeOne()
-        func = lambda *x: None
-        txn = Dummy()
-        registry.register(func, txn)
-        self.assertEqual(getattr(txn, registry.key), [func])
-        registry.unregister(func, txn)
-        self.assertFalse(hasattr(txn, registry.key))
-        
-    def test_unregister_notexists(self):
-        registry = self._makeOne()
-        func = lambda *x: None
-        txn = Dummy()
-        setattr(txn, registry.key, [None])
-        registry.unregister(func, txn)
-        self.assertEqual(getattr(txn, registry.key), [None])
+    tm = repoze_tm.TM(app)
 
-    def test_unregister_funcs_is_None(self):
-        registry = self._makeOne()
-        func = lambda *x: None
-        txn = Dummy()
-        self.assertEqual(registry.unregister(func, txn), None)
+    result = [chunk for chunk in tm({}, start_response)]
 
-class UtilityFunctionTests(unittest.TestCase):
-    def test_isActive(self):
-        from repoze.tm import ekey
-        from repoze.tm import isActive
-        self.assertEqual(isActive({ekey:True}), True)
-        self.assertEqual(isActive({}), False)
+    assert result == ['hello']
+    assert not transaction_module.committed
+    assert transaction_module.aborted
 
-class TestMakeTM(unittest.TestCase):
-    def test_make_tm_withveto(self):
-        from repoze.tm import make_tm
-        from tests.unit.util import fakeveto
-        tm = make_tm(DummyApplication(), {}, 'tests.unit.util:fakeveto')
-        self.assertEqual(tm.commit_veto, fakeveto)
 
-    def test_make_tm_noveto(self):
-        from repoze.tm import make_tm
-        tm = make_tm(DummyApplication(), {}, None)
-        self.assertEqual(tm.commit_veto, None)
+def test_tm_aborted_via_exception(transaction_module, app):
+    app.exception = True
 
-class Test_default_commit_veto(unittest.TestCase):
-    def _callFUT(self, status, headers=()):
-        from repoze.tm import default_commit_veto
-        return default_commit_veto(None, status, headers)
-    
-    def test_it_true_5XX(self):
-        self.assertTrue(self._callFUT('500 Server Error'))
-        self.assertTrue(self._callFUT('503 Service Unavailable'))
+    tm = repoze_tm.TM(app)
 
-    def test_it_true_4XX(self):
-        self.assertTrue(self._callFUT('400 Bad Request'))
-        self.assertTrue(self._callFUT('411 Length Required'))
+    def execute_request():
+        [chunk for chunk in tm({}, start_response)]
 
-    def test_it_false_2XX(self):
-        self.assertFalse(self._callFUT('200 OK'))
-        self.assertFalse(self._callFUT('201 Created'))
+    with pytest.raises(ValueError):
+        execute_request()
 
-    def test_it_false_3XX(self):
-        self.assertFalse(self._callFUT('301 Moved Permanently'))
-        self.assertFalse(self._callFUT('302 Found'))
+    assert not transaction_module.committed
+    assert transaction_module.aborted
 
-    def test_it_true_x_tm_abort_specific(self):
-        self.assertTrue(self._callFUT('200 OK', [('X-Tm-Abort', True)]))
 
-    def test_it_false_x_tm_commit(self):
-        self.assertFalse(self._callFUT('200 OK', [('X-Tm', 'commit')]))
+def test_tm_aborted_via_exception_and_doom(transaction_module, app):
+    transaction_module.doom = True
+    app.exception = True
 
-    def test_it_true_x_tm_abort(self):
-        self.assertTrue(self._callFUT('200 OK', [('X-Tm', 'abort')]))
+    tm = repoze_tm.TM(app)
 
-    def test_it_true_x_tm_anythingelse(self):
-        self.assertTrue(self._callFUT('200 OK', [('X-Tm', '')]))
+    def execute_request():
+        [chunk for chunk in tm({}, start_response)]
 
-    def test_x_tm_generic_precedes_x_tm_abort_specific(self):
-        self.assertFalse(self._callFUT('200 OK', [('X-Tm', 'commit'),
-                                                  ('X-Tm-Abort', True)]))
+    with pytest.raises(ValueError):
+        execute_request()
+
+    assert not transaction_module.committed
+    assert transaction_module.aborted
+
+
+def test_tm_aborted_via_commit_veto(transaction_module, app):
+    app.status = "403 Forbidden"
+
+    def commit_veto(environ, status, headers):
+        assert isinstance(environ, dict)
+        assert isinstance(headers, list)
+        assert isinstance(status, str)
+        status_code = int(status.split()[0])
+        return not (200 <=  status_code < 400)
+
+    tm = repoze_tm.TM(app, commit_veto)
+
+    [chunk for chunk in tm({}, start_response)]
+
+    assert not transaction_module.committed
+    assert transaction_module.aborted
+
+
+def test_tm_committed_via_commit_veto_exception(transaction_module, app):
+    app.status = "403 Forbidden"
+
+    def commit_veto(environ, status, headers):
+        return None
+
+    tm = repoze_tm.TM(app, commit_veto)
+
+    [chunk for chunk in tm({}, start_response)]
+
+    assert transaction_module.committed
+    assert not transaction_module.aborted
+
+
+def test_tm_aborted_via_commit_veto_exception(transaction_module, app):
+    app.status = "403 Forbidden"
+
+    def commit_veto(environ, status, headers):
+        raise ValueError('foo')
+
+    tm = repoze_tm.TM(app, commit_veto)
+
+    def execute_request():
+        [chunk for chunk in tm({}, start_response)]
+
+    with pytest.raises(ValueError):
+        execute_request()
+
+    assert not transaction_module.committed
+    assert transaction_module.aborted
+
+
+def test_tm_cleanup_on_commit(transaction_module, app):
+    env = {}
+    dummy = mock.Mock(spec_set=())
+    setattr(transaction_module, repoze_tm.after_end.key, [dummy])
+
+    tm = repoze_tm.TM(app)
+
+    [chunk for chunk in tm(env, start_response)]
+
+    assert transaction_module.committed
+    assert not transaction_module.aborted
+    dummy.assert_called_once_with()
+
+
+def test_tm_cleanup_on_abort(transaction_module, app):
+    app.exception = True
+    env = {}
+    dummy = mock.Mock(spec_set=())
+    setattr(transaction_module, repoze_tm.after_end.key, [dummy])
+
+    tm = repoze_tm.TM(app)
+
+    def execute_request():
+        [chunk for chunk in tm(env, start_response)]
+
+    with pytest.raises(ValueError):
+        execute_request()
+
+    assert not transaction_module.committed
+    assert transaction_module.aborted
+    dummy.assert_called_once_with()
+
+
+def any_args(*args):
+    return None
+
+
+@pytest.fixture
+def txn():
+    key = repoze_tm.AfterEnd.key
+    return mock.Mock(spec_set=[key], **{key: None})
+
+
+def test_afterend_register(txn):
+    registry = repoze_tm.AfterEnd()
+    registry.register(any_args, txn)
+
+    assert getattr(txn, registry.key) == [any_args]
+
+
+def test_afterend_unregister_exists(txn):
+    registry = repoze_tm.AfterEnd()
+    registry.register(any_args, txn)
+
+    assert getattr(txn, registry.key) == [any_args]
+
+    registry.unregister(any_args, txn)
+
+    assert not hasattr(txn, registry.key)
+
+
+def test_afterend_unregister_not_exists(txn):
+    registry = repoze_tm.AfterEnd()
+    setattr(txn, registry.key, [None])
+
+    registry.unregister(any_args, txn)
+
+    assert getattr(txn, registry.key) == [None]
+
+
+def test_afterend_unregister_funcs_is_None(txn):
+    registry = repoze_tm.AfterEnd()
+
+    assert registry.unregister(any_args, txn) is None
+
+
+def test_isActive_w_ekey():
+    assert repoze_tm.isActive({repoze_tm.ekey: True})
+
+
+def test_isActive_wo_ekey():
+    assert not repoze_tm.isActive({})
+
+
+def test_make_tm_withveto(app):
+    from tests.unit.util import fakeveto
+    tm = repoze_tm.make_tm(app, {}, 'tests.unit.util:fakeveto')
+    assert tm.commit_veto == fakeveto
+
+
+def test_make_tm_noveto(app):
+    tm = repoze_tm.make_tm(app, {}, None)
+    assert tm.commit_veto == None
+
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        '500 Server Error',
+        '503 Service Unavailable',
+        '400 Bad Request',
+        '411 Length Required',
+    ]
+)
+def test_default_commit_veto_no_headers_w_error(status):
+    assert repoze_tm.default_commit_veto(None, status, ())
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        '200 OK',
+        '201 Created',
+        '301 Moved Permanently',
+        '302 Found',
+    ]
+)
+def test_default_commit_veto_no_headers_wo_error(status):
+    assert not repoze_tm.default_commit_veto(None, status, ())
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        [('X-Tm-Abort', True)],
+        [('X-Tm', 'abort')],
+        [('X-Tm', '')],
+    ],
+)
+def test_default_commit_veto_true_w_w_x_tm_headers(headers):
+    assert repoze_tm.default_commit_veto(None, '200 OK', headers)
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        [('X-Tm', 'commit')],
+        [('X-Tm', 'commit'), ('X-Tm-Abort', True)]
+    ],
+)
+def test_default_commit_veto_false_w_w_x_tm_headers(headers):
+    assert not repoze_tm.default_commit_veto(None, '200 OK', headers)
+
 
 class DummyTransactionModule:
     begun = False
     committed = False
     aborted = False
-    def __init__(self, doom=False):
-        self.doom = doom
+    doom = False
 
     def begin(self):
         self.begun = True
@@ -258,14 +300,16 @@ class DummyTransactionModule:
     def isDoomed(self):
         return self.doom
 
+
 class Dummy:
     pass
+
 
 class DummyApplication:
     def __init__(self, exception=False, status="200 OK"):
         self.exception = exception
         self.status = status
-        
+
     def __call__(self, environ, start_response):
         start_response(self.status, [], None)
         if self.exception:
