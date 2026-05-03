@@ -4,7 +4,7 @@ import sys
 
 import transaction
 
-ekey = 'repoze.tm.active'
+ekey = "repoze.tm.active"
 
 
 def reraise(tp, value, tb=None):
@@ -14,11 +14,12 @@ def reraise(tp, value, tb=None):
 
 
 class TM:
-    """ Transaction management WSGI middleware """
+    """Transaction management WSGI middleware"""
+
     def __init__(self, application, commit_veto=None):
         self.application = application
         self.commit_veto = commit_veto
-        
+
     def __call__(self, environ, start_response):
         environ[ekey] = True
         transaction.begin()
@@ -29,8 +30,7 @@ class TM:
             return start_response(status, headers, exc_info)
 
         try:
-            for chunk in self.application(environ, save_status_and_headers):
-                yield chunk
+            yield from self.application(environ, save_status_and_headers)
         except Exception:
             """Saving the exception"""
             try:
@@ -41,12 +41,12 @@ class TM:
                 del type_, value, tb
 
         # ZODB 3.8 + has isDoomed
-        if hasattr(transaction, 'isDoomed') and transaction.isDoomed():
+        if hasattr(transaction, "isDoomed") and transaction.isDoomed():
             self.abort()
         else:
             if self.commit_veto is not None:
                 try:
-                    status, headers = ctx['status'], ctx['headers']
+                    status, headers = ctx["status"], ctx["headers"]
                     veto = self.commit_veto(environ, status, headers)
                 except:
                     self.abort()
@@ -70,18 +70,22 @@ class TM:
         t.abort()
         after_end.cleanup(t)
 
+
 def isActive(environ):
-    """ Return True if the ``repoze.tm.active`` key is in the WSGI
+    """Return True if the ``repoze.tm.active`` key is in the WSGI
     environment passed as ``environ``, otherwise return ``False``."""
     if ekey in environ:
         return True
     return False
 
+
 # Callback registry API helper class
 class AfterEnd:
-    """ Callback registry API helper class.  Use the singleton instance
+    """Callback registry API helper class.  Use the singleton instance
     ``repoze.tm.after_end`` when possible."""
-    key = '_repoze_tm_afterend'
+
+    key = "_repoze_tm_afterend"
+
     def register(self, func, txn):
         funcs = getattr(txn, self.key, None)
         if funcs is None:
@@ -110,8 +114,10 @@ class AfterEnd:
                 func()
             delattr(txn, self.key)
 
+
 # singleton, importable by other modules
 after_end = AfterEnd()
+
 
 def default_commit_veto(environ, status, headers):
     """
@@ -136,17 +142,17 @@ def default_commit_veto(environ, status, headers):
     abort_compat = False
     for header_name, header_value in headers:
         header_name = header_name.lower()
-        if header_name == 'x-tm':
+        if header_name == "x-tm":
             header_value = header_value.lower()
-            if header_value == 'commit':
+            if header_value == "commit":
                 return False
             return True
         # x-tm always honored before x-tm-abort 1.0b1 compatibility
-        if header_name == 'x-tm-abort':
+        if header_name == "x-tm-abort":
             abort_compat = True
     if abort_compat:
         return True
-    for bad in ('4', '5'):
+    for bad in ("4", "5"):
         if status.startswith(bad):
             return True
     return False
@@ -159,8 +165,8 @@ def _quasi_entrypoint(dotted_with_colon):
 
 
 def make_tm(app, global_conf, commit_veto=None):
-    """ Paste filter_app_factory entry point for creation of a TM middleware."""
+    """Paste filter_app_factory entry point creating TM middleware"""
     if commit_veto is not None:
         commit_veto = _quasi_entrypoint(commit_veto)
-    return TM(app, commit_veto)
 
+    return TM(app, commit_veto)

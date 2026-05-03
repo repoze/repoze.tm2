@@ -1,4 +1,3 @@
-import unittest
 from unittest import mock
 
 import pytest
@@ -6,8 +5,9 @@ import pytest
 from repoze import tm as repoze_tm
 
 
-def start_response(status, headers, exc_info=None):
-    pass
+class LocalTestError(ValueError):
+    def __init__(self):
+        super().__init__("local test error")
 
 
 @pytest.fixture
@@ -21,39 +21,48 @@ def app():
     return DummyApplication()
 
 
-def test_tm_ekey_inserted(transaction_module, app):
+@pytest.fixture
+def start_response():
+
+    def _start_response(status, headers, exc_info=None):
+        pass
+
+    return mock.create_autospec(_start_response, return_value=["hello"])
+
+
+def test_tm_ekey_inserted(transaction_module, app, start_response):
     tm = repoze_tm.TM(app)
     env = {}
 
     result = [chunk for chunk in tm(env, start_response)]
 
-    assert result == ['hello']
+    assert result == start_response.return_value
     assert repoze_tm.ekey in env
 
 
-def test_tm_committed(transaction_module, app):
+def test_tm_committed(transaction_module, app, start_response):
     tm = repoze_tm.TM(app)
 
     result = [chunk for chunk in tm({}, start_response)]
 
-    assert result == ['hello']
+    assert result == start_response.return_value
     assert transaction_module.committed
     assert not transaction_module.aborted
 
 
-def test_tm_aborted_via_doom(transaction_module, app):
+def test_tm_aborted_via_doom(transaction_module, app, start_response):
     transaction_module.doom = True
 
     tm = repoze_tm.TM(app)
 
     result = [chunk for chunk in tm({}, start_response)]
 
-    assert result == ['hello']
+    assert result == start_response.return_value
     assert not transaction_module.committed
     assert transaction_module.aborted
 
 
-def test_tm_aborted_via_exception(transaction_module, app):
+def test_tm_aborted_via_exception(transaction_module, app, start_response):
     app.exception = True
 
     tm = repoze_tm.TM(app)
@@ -61,14 +70,18 @@ def test_tm_aborted_via_exception(transaction_module, app):
     def execute_request():
         [chunk for chunk in tm({}, start_response)]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(LocalTestError):
         execute_request()
 
     assert not transaction_module.committed
     assert transaction_module.aborted
 
 
-def test_tm_aborted_via_exception_and_doom(transaction_module, app):
+def test_tm_aborted_via_exception_and_doom(
+    transaction_module,
+    app,
+    start_response,
+):
     transaction_module.doom = True
     app.exception = True
 
@@ -77,14 +90,14 @@ def test_tm_aborted_via_exception_and_doom(transaction_module, app):
     def execute_request():
         [chunk for chunk in tm({}, start_response)]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(LocalTestError):
         execute_request()
 
     assert not transaction_module.committed
     assert transaction_module.aborted
 
 
-def test_tm_aborted_via_commit_veto(transaction_module, app):
+def test_tm_aborted_via_commit_veto(transaction_module, app, start_response):
     app.status = "403 Forbidden"
 
     def commit_veto(environ, status, headers):
@@ -92,7 +105,7 @@ def test_tm_aborted_via_commit_veto(transaction_module, app):
         assert isinstance(headers, list)
         assert isinstance(status, str)
         status_code = int(status.split()[0])
-        return not (200 <=  status_code < 400)
+        return not (200 <= status_code < 400)
 
     tm = repoze_tm.TM(app, commit_veto)
 
@@ -102,7 +115,11 @@ def test_tm_aborted_via_commit_veto(transaction_module, app):
     assert transaction_module.aborted
 
 
-def test_tm_committed_via_commit_veto_exception(transaction_module, app):
+def test_tm_committed_via_commit_veto_exception(
+    transaction_module,
+    app,
+    start_response,
+):
     app.status = "403 Forbidden"
 
     def commit_veto(environ, status, headers):
@@ -116,25 +133,29 @@ def test_tm_committed_via_commit_veto_exception(transaction_module, app):
     assert not transaction_module.aborted
 
 
-def test_tm_aborted_via_commit_veto_exception(transaction_module, app):
+def test_tm_aborted_via_commit_veto_exception(
+    transaction_module,
+    app,
+    start_response,
+):
     app.status = "403 Forbidden"
 
     def commit_veto(environ, status, headers):
-        raise ValueError('foo')
+        raise LocalTestError()
 
     tm = repoze_tm.TM(app, commit_veto)
 
     def execute_request():
         [chunk for chunk in tm({}, start_response)]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(LocalTestError):
         execute_request()
 
     assert not transaction_module.committed
     assert transaction_module.aborted
 
 
-def test_tm_cleanup_on_commit(transaction_module, app):
+def test_tm_cleanup_on_commit(transaction_module, app, start_response):
     env = {}
     dummy = mock.Mock(spec_set=())
     setattr(transaction_module, repoze_tm.after_end.key, [dummy])
@@ -148,7 +169,7 @@ def test_tm_cleanup_on_commit(transaction_module, app):
     dummy.assert_called_once_with()
 
 
-def test_tm_cleanup_on_abort(transaction_module, app):
+def test_tm_cleanup_on_abort(transaction_module, app, start_response):
     app.exception = True
     env = {}
     dummy = mock.Mock(spec_set=())
@@ -159,7 +180,7 @@ def test_tm_cleanup_on_abort(transaction_module, app):
     def execute_request():
         [chunk for chunk in tm(env, start_response)]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(LocalTestError):
         execute_request()
 
     assert not transaction_module.committed
@@ -220,24 +241,24 @@ def test_isActive_wo_ekey():
 
 def test_make_tm_withveto(app):
     from tests.unit.util import fakeveto
-    tm = repoze_tm.make_tm(app, {}, 'tests.unit.util:fakeveto')
+
+    tm = repoze_tm.make_tm(app, {}, "tests.unit.util:fakeveto")
     assert tm.commit_veto == fakeveto
 
 
 def test_make_tm_noveto(app):
     tm = repoze_tm.make_tm(app, {}, None)
-    assert tm.commit_veto == None
-
+    assert tm.commit_veto is None
 
 
 @pytest.mark.parametrize(
     "status",
     [
-        '500 Server Error',
-        '503 Service Unavailable',
-        '400 Bad Request',
-        '411 Length Required',
-    ]
+        "500 Server Error",
+        "503 Service Unavailable",
+        "400 Bad Request",
+        "411 Length Required",
+    ],
 )
 def test_default_commit_veto_no_headers_w_error(status):
     assert repoze_tm.default_commit_veto(None, status, ())
@@ -246,11 +267,11 @@ def test_default_commit_veto_no_headers_w_error(status):
 @pytest.mark.parametrize(
     "status",
     [
-        '200 OK',
-        '201 Created',
-        '301 Moved Permanently',
-        '302 Found',
-    ]
+        "200 OK",
+        "201 Created",
+        "301 Moved Permanently",
+        "302 Found",
+    ],
 )
 def test_default_commit_veto_no_headers_wo_error(status):
     assert not repoze_tm.default_commit_veto(None, status, ())
@@ -259,24 +280,21 @@ def test_default_commit_veto_no_headers_wo_error(status):
 @pytest.mark.parametrize(
     "headers",
     [
-        [('X-Tm-Abort', True)],
-        [('X-Tm', 'abort')],
-        [('X-Tm', '')],
+        [("X-Tm-Abort", True)],
+        [("X-Tm", "abort")],
+        [("X-Tm", "")],
     ],
 )
 def test_default_commit_veto_true_w_w_x_tm_headers(headers):
-    assert repoze_tm.default_commit_veto(None, '200 OK', headers)
+    assert repoze_tm.default_commit_veto(None, "200 OK", headers)
 
 
 @pytest.mark.parametrize(
     "headers",
-    [
-        [('X-Tm', 'commit')],
-        [('X-Tm', 'commit'), ('X-Tm-Abort', True)]
-    ],
+    [[("X-Tm", "commit")], [("X-Tm", "commit"), ("X-Tm-Abort", True)]],
 )
 def test_default_commit_veto_false_w_w_x_tm_headers(headers):
-    assert not repoze_tm.default_commit_veto(None, '200 OK', headers)
+    assert not repoze_tm.default_commit_veto(None, "200 OK", headers)
 
 
 class DummyTransactionModule:
@@ -301,18 +319,15 @@ class DummyTransactionModule:
         return self.doom
 
 
-class Dummy:
-    pass
-
-
 class DummyApplication:
     def __init__(self, exception=False, status="200 OK"):
         self.exception = exception
         self.status = status
 
     def __call__(self, environ, start_response):
-        start_response(self.status, [], None)
-        if self.exception:
-            raise ValueError('raising')
-        return ['hello']
+        result = start_response(self.status, [], None)
 
+        if self.exception:
+            raise LocalTestError()
+
+        return result
