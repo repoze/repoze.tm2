@@ -7,7 +7,7 @@ where = ["src"]
 
 [project]
 name = "repoze-tm2"
-version = "2.3dev0"
+version = "2.3"
 description = "Per-request transactions via WSGI middleware"
 readme = {file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.10"
