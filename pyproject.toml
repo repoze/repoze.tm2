@@ -71,6 +71,7 @@ include-package-data = true
 minversion = "6.0"
 python_files = "test_*.py"
 testpaths = [ "tests" ]
+addopts = "--cov=repoze.tm --cov=tests/unit --cov-branch"
 
 [tool.coverage.run]
 omit = []
