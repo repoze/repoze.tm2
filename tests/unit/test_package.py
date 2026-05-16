@@ -24,7 +24,7 @@ def app():
 @pytest.fixture
 def start_response():
 
-    def _start_response(status, headers, exc_info=None):
+    def _start_response(status, headers, exc_info=None):  # pragma: NO COVER
         pass
 
     return mock.create_autospec(_start_response, return_value=["hello"])
@@ -188,7 +188,7 @@ def test_tm_cleanup_on_abort(transaction_module, app, start_response):
     dummy.assert_called_once_with()
 
 
-def any_args(*args):
+def any_args(*args):  # pragma: NO COVER
     return None
 
 
@@ -198,11 +198,21 @@ def txn():
     return mock.Mock(spec_set=[key], **{key: None})
 
 
-def test_afterend_register(txn):
+def test_afterend_register_wo_funcs(txn):
     registry = repoze_tm.AfterEnd()
     registry.register(any_args, txn)
 
     assert getattr(txn, registry.key) == [any_args]
+
+
+def test_afterend_register_w_funcs(txn):
+    funcs = []
+    setattr(txn, repoze_tm.AfterEnd.key, funcs)
+    registry = repoze_tm.AfterEnd()
+
+    registry.register(any_args, txn)
+
+    assert funcs == [any_args]
 
 
 def test_afterend_unregister_exists(txn):
@@ -294,6 +304,11 @@ def test_default_commit_veto_true_w_w_x_tm_headers(headers):
     [[("X-Tm", "commit")], [("X-Tm", "commit"), ("X-Tm-Abort", True)]],
 )
 def test_default_commit_veto_false_w_w_x_tm_headers(headers):
+    assert not repoze_tm.default_commit_veto(None, "200 OK", headers)
+
+
+def test_default_commit_veto_false_w_other_headers():
+    headers = [("X-Other", "test")]
     assert not repoze_tm.default_commit_veto(None, "200 OK", headers)
 
 
